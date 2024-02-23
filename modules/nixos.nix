@@ -11,9 +11,6 @@ in {
 
   config = lib.mkIf config.services.flatpak.enable {
     systemd.services."flatpak-managed-install" = {
-      wantedBy = [
-        "default.target" # multi-user target with a GUI. For a desktop, this is typically going to be the graphical.target
-      ];
       after = [
         "multi-user.target" # ensures that network & connectivity have been setup.
       ];
