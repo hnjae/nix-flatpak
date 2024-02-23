@@ -24,6 +24,7 @@ in {
         Unit = "flatpak-managed-install";
         OnCalendar = config.services.flatpak.update.auto.onCalendar;
         Persistent = "true";
+        RandomizedDelaySec = config.services.flatpak.update.auto.randomizedDelaySec;
       };
       wantedBy = ["timers.target"];
     };

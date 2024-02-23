@@ -80,6 +80,11 @@ with lib; let
                   See https://wiki.archlinux.org/title/systemd/Timers for details.
                 '';
               };
+              randomizedDelaySec = mkOption {
+                type = types.str;
+                default = "12h";
+                description = lib.mdDoc '''';
+              };
             };
           });
         default = {enable = false;};
@@ -148,6 +153,7 @@ in {
       auto = {
         enable = false;
         onCalendar = "weekly";
+        randomizedDelaySec = "12h";
       };
     };
     description = lib.mdDoc ''
