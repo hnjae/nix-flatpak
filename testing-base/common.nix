@@ -1,9 +1,14 @@
 # configuration.nix
-{ config, lib, pkgs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   users.users.antani = {
     isNormalUser = true;
     home = "/home/antani";
-    extraGroups = [ "wheel" ]; # Enables `sudo` for the user.
+    extraGroups = ["wheel"]; # Enables `sudo` for the user.
     password = "changeme"; # The password assigned if the user does not already exist.
   };
 
@@ -22,7 +27,7 @@
     settings.PasswordAuthentication = true;
   };
 
-  networking.firewall.allowedTCPPorts = [ 22 ];
+  networking.firewall.allowedTCPPorts = [22];
   environment.systemPackages = with pkgs; [
     git
     vim

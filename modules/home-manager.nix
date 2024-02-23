@@ -1,18 +1,22 @@
-{ config, lib, pkgs, ... }@args:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+} @ args: let
   cfg = config.services.flatpak;
   installation = "user";
-in
-{
-
-  options.services.flatpak = (import ./options.nix { inherit lib pkgs; })
-  // {
-    enable = with lib; mkOption {
-      type = types.bool;
-      default = args.osConfig.services.flatpak.enable or false;
-      description = mkDoc "Whether to enable nix-flatpak declarative flatpak management in home-manager.";
+in {
+  options.services.flatpak =
+    (import ./options.nix {inherit lib pkgs;})
+    // {
+      enable = with lib;
+        mkOption {
+          type = types.bool;
+          default = args.osConfig.services.flatpak.enable or false;
+          description = mkDoc "Whether to enable nix-flatpak declarative flatpak management in home-manager.";
+        };
     };
-  };
 
   config = lib.mkIf config.services.flatpak.enable {
     systemd.user.services."flatpak-managed-install" = {
@@ -28,7 +32,7 @@ in
       };
       Service = {
         Type = "oneshot"; # TODO: should this be an async startup, to avoid blocking on network at boot ?
-        ExecStart = import ./installer.nix { inherit cfg pkgs lib installation; };
+        ExecStart = import ./installer.nix {inherit cfg pkgs lib installation;};
       };
     };
 
@@ -39,12 +43,12 @@ in
         OnCalendar = config.services.flatpak.update.auto.onCalendar;
         Persistent = "true";
       };
-      Install.WantedBy = [ "timers.target" ];
+      Install.WantedBy = ["timers.target"];
     };
 
     home.activation = {
-      flatpak-managed-install = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
-        export PATH=${lib.makeBinPath (with pkgs; [ systemd ])}:$PATH
+      flatpak-managed-install = lib.hm.dag.entryAfter ["reloadSystemd"] ''
+        export PATH=${lib.makeBinPath (with pkgs; [systemd])}:$PATH
 
         $DRY_RUN_CMD systemctl is-system-running -q && \
           systemctl --user start flatpak-managed-install.service || true
@@ -53,5 +57,4 @@ in
 
     xdg.enable = true;
   };
-
 }
