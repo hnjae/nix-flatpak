@@ -122,6 +122,23 @@ in
     # This script is triggered at build time by a transient systemd unit.
     set -eu
 
+    # bashism
+    MAX_RETRY=5
+    PAUSE_SEC=120
+    for i in {0.."$MAX_RETRY"}; do
+      if ${pkgs.inetutils}/bin/ping -c 1 1.1.1.1 >/dev/null 2>&1; then
+        break
+      fi
+
+      if [ "$i" -ge "$MAX_RETRY" ]; then
+        echo "ERROR: Internet is not connected. Aborting execution."
+        exit 1
+      fi
+
+      echo "INFO: Waiting Internet connection. Will retry after ''${PAUSE_SEC}s."
+      sleep "$PAUSE_SEC"
+    done
+
     # Setup state variables
     NEW_STATE=$(${pkgs.coreutils}/bin/cat ${stateFile})
     if [[ -f ${statePath} ]]; then
