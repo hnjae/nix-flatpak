@@ -125,7 +125,7 @@ in
     # bashism
     MAX_RETRY=5
     PAUSE_SEC=120
-    for i in {0.."$MAX_RETRY"}; do
+    for ((i = 0; i <= MAX_RETRY; i++)); do
       if ${pkgs.inetutils}/bin/ping -c 1 1.1.1.1 >/dev/null 2>&1; then
         break
       fi
