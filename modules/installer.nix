@@ -41,7 +41,11 @@
       --argjson new "$NEW_STATE" \
       '(($old.packages // []) - ($new.packages // []))[]' \
     | while read -r APP_ID; do
-        ${pkgs.flatpak}/bin/flatpak uninstall --${installation} -y $APP_ID
+        if ${pkgs.flatpak}/bin/flatpak info --${installation} -- "$APP_ID" >/dev/null 2>&1; then
+          ${pkgs.flatpak}/bin/flatpak uninstall --${installation} -y "$APP_ID"
+        else
+          echo "$APP_ID has already been uninstalled."
+        fi
     done
   '';
 
