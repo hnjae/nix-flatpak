@@ -36,7 +36,6 @@ in {
     systemd.user.timers."flatpak-managed-install" = lib.mkIf config.services.flatpak.update.auto.enable {
       Unit.Description = "flatpak update schedule";
       Timer = {
-        Unit = "flatpak-managed-install";
         OnCalendar = config.services.flatpak.update.auto.onCalendar;
         Persistent = "true";
       };
