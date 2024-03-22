@@ -140,7 +140,7 @@ in
       fi
 
       echo "INFO: Waiting Internet connection. Will retry after ''${PAUSE_SEC}s."
-      sleep "$PAUSE_SEC"
+      ${pkgs.coreutils}/bin/sleep "$PAUSE_SEC"
     done
 
     # Setup state variables
