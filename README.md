@@ -22,12 +22,16 @@ the number of applications to install, this could increase activation time signi
 
 ## Releases
 
-This project is released as a [flake](https://nixos.wiki/wiki/Flakes). 
+This project is released as a [flake](https://nixos.wiki/wiki/Flakes), and is published
+on [flakehub](https://flakehub.com/flake/gmodena/nix-flatpak).
+
+### Manual installation
+
 Releases are tagged with [semantic versioning](https://semver.org/). Versions below `1.0.0` are considered early, development, releases.
 Users can track a version by passing its tag as `ref`
 ```nix
 ...
-nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=v0.1.0";
+nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=v0.4.0";
 ...
 ```
 
@@ -90,11 +94,6 @@ Alternatively, it is possible to merge declared remotes with the default one wit
   }];
 ```
 
-**Note**: currently no state management has been implemented for `remotes`.
-Removing a remote for the config declaration won't delete it from the system. 
-A manual `flatpak remote-delete [...]` is required. Improving remote management
-is planned for future releases.
-
 ### Packages
 Declare packages to install with:
 ```nix
@@ -108,13 +107,22 @@ You can pin a specific commit setting `commit=<hash>` attribute.
 
 Rebuild your system (or home-manager) for changes to take place.
 
-##### Unmanaged packages
+##### Unmanaged packages and remotes
 
-By default `nix-flatpak` will only managed (install/uninstall/update) packages declared in the
-`services.flatpak.packages`. Flatpak installed by the command line of app stores won't be affected.
+By default `nix-flatpak` will only manage (install/uninstall/update) packages declared in the
+`services.flatpak.packages` and repositories declared in `services.flatpak.remotes`.
+Flatpak packages and repositories installed by the command line of app stores won't be affected.
 
-Set `services.flatpak.uninstallUnmanagedPackages = true` to alter this behaviour, and have `nix-flatpak` manage the
-lifecyle of all flatpaks installed on the system.
+Set `services.flatpak.uninstallUnmanaged = true` to alter this behaviour, and have `nix-flatpak` manage the
+lifecycle of all flatpaks packages and repositories.
+
+Note that `services.flatpak.uninstallUnmanaged` will only affect a given `system` of `user` installation
+target. If `nix-flatpak` is installed as a HomeManager module all packages/remotes will be managed
+in a `user` installation. Packages/remotes installed system-wide won't be affected
+by `services.flatpak.uninstallUnmanaged`.
+
+Similarly, when `nix-flatpak` is installed as a NixOs module, only system-wide config will
+be affected.
 
 ### Updates
 
