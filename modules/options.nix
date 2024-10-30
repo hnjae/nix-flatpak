@@ -1,5 +1,6 @@
-{lib, ...}:
-with lib; let
+{ config, lib, ... }:
+with lib;
+let
   remoteOptions = _: {
     options = {
       name = mkOption {
@@ -24,7 +25,9 @@ with lib; let
   packageOptions = _: {
     options = {
       appId = mkOption {
-        type = types.str;
+        # type = types.str;
+        # my-edit:
+        type = types.nonEmptyStr;
         description = lib.mdDoc "The fully qualified id of the app to install.";
       };
 
@@ -131,7 +134,7 @@ in {
 
   overrides = mkOption {
     type = with types; attrsOf (attrsOf (attrsOf (either str (listOf str))));
-    default = {};
+    default = { };
     description = lib.mdDoc ''
       Applies the provided attribute set into a Flatpak overrides file with the
       same structure, keeping externally applied changes.
@@ -180,12 +183,20 @@ in {
   };
 
   uninstallUnmanagedPackages = mkOption {
-    type = with types; bool;
-    default = false;
+    type = lib.types.nullOr (lib.types.bool);
+    default = null;
     description = lib.mdDoc ''
-      If enabled, uninstall packages not managed by this module on activation.
+      uninstallUnmanagedPackages is deprecated. Use uninstallUnamanged instead.'';
+  };
+
+  uninstallUnmanaged = mkOption {
+    type = with types; bool;
+    default = (if isNull config.services.flatpak.uninstallUnmanagedPackages then false else
+    config.services.flatpak.uninstallUnmanagedPackages) || false;
+    description = lib.mdDoc ''
+      If enabled, uninstall packages and delete remotes not managed by this module on activation.
       I.e. if packages were installed via Flatpak directly instead of this module,
-      they would get uninstalled on the next activation.
+      they would get uninstalled on the next activation. The same applies to remotes manually setup via `flatpak remote-add`
     '';
   };
 }
