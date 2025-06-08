@@ -10,22 +10,29 @@ in
 
   config = lib.mkIf config.services.flatpak.enable {
     systemd.services."flatpak-managed-install" = {
-      wantedBy = [
-        "default.target" # multi-user target with a GUI. For a desktop, this is typically going to be the graphical.target
-      ];
+      # my-edit: no automatic updates at every boot/login
+      # wantedBy = [
+      #   "default.target" # multi-user target with a GUI. For a desktop, this is typically going to be the graphical.target
+      # ];
       after = [
         "multi-user.target" # ensures that network & connectivity have been setup.
       ];
       serviceConfig = {
         Type = "oneshot"; # TODO: should this be an async startup, to avoid blocking on network at boot ?
         ExecStart = import ./installer.nix { inherit cfg pkgs lib installation; };
+        # my-edit: run unit with idle scheduling policy
+        CPUSchedulingPolicy = "idle";
+        IOSchedulingClass = "idle";
       };
     };
     systemd.timers."flatpak-managed-install" = lib.mkIf config.services.flatpak.update.auto.enable {
       timerConfig = {
-        Unit = "flatpak-managed-install";
+        # my-edit: fix-following: Unit type not valid, ignoring: flatpak-managed-install
+        # Unit = "flatpak-managed-install";
         OnCalendar = config.services.flatpak.update.auto.onCalendar;
         Persistent = "true";
+        # my-edit
+        RandomizedDelaySec = "4h";
       };
       wantedBy = [ "timers.target" ];
     };

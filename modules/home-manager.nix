@@ -24,35 +24,43 @@ in
           "multi-user.target" # ensures that network & connectivity have been setup.
         ];
       };
-      Install = {
-        WantedBy = [
-          "default.target" # multi-user target with a GUI. For a desktop, this is typically going to be the graphical.target
-        ];
-      };
+      # my-edit: no automatic updates at every boot/login
+      # Install = {
+      #   WantedBy = [
+      #     "default.target" # multi-user target with a GUI. For a desktop, this is typically going to be the graphical.target
+      #   ];
+      # };
       Service = {
         Type = "oneshot"; # TODO: should this be an async startup, to avoid blocking on network at boot ?
         ExecStart = import ./installer.nix { inherit cfg pkgs lib installation; };
+        # my-edit: run unit with idle scheduling policy
+        CPUSchedulingPolicy = "idle";
+        IOSchedulingClass = "idle";
       };
     };
 
     systemd.user.timers."flatpak-managed-install" = lib.mkIf config.services.flatpak.update.auto.enable {
       Unit.Description = "flatpak update schedule";
       Timer = {
-        Unit = "flatpak-managed-install";
+        # my-edit: fix following: Unit type not valid, ignoring: flatpak-managed-install
+        # Unit = "flatpak-managed-install";
         OnCalendar = config.services.flatpak.update.auto.onCalendar;
         Persistent = "true";
+        # my-edit
+        RandomizedDelaySec = "4h";
       };
       Install.WantedBy = [ "timers.target" ];
     };
 
-    home.activation = {
-      flatpak-managed-install = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
-        export PATH=${lib.makeBinPath (with pkgs; [ systemd ])}:$PATH
-
-        $DRY_RUN_CMD systemctl is-system-running -q && \
-          systemctl --user start flatpak-managed-install.service || true
-      '';
-    };
+    # my-edit: disable home.activation (it tooks so long)
+    # home.activation = {
+    #   flatpak-managed-install = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
+    #     export PATH=${lib.makeBinPath (with pkgs; [ systemd ])}:$PATH
+    #
+    #     $DRY_RUN_CMD systemctl is-system-running -q && \
+    #       systemctl --user start flatpak-managed-install.service || true
+    #   '';
+    # };
 
     xdg.enable = true;
   };

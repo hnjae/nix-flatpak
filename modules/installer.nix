@@ -64,7 +64,13 @@ let
       --argjson new "$NEW_STATE" \
       '(($old.packages // []) - ($new.packages // []))[]' \
     | while read -r APP_ID; do
-        ${pkgs.flatpak}/bin/flatpak uninstall --${installation} -y $APP_ID
+        # my-edit: 이미 지워진 패키지에 대응
+        # ${pkgs.flatpak}/bin/flatpak uninstall --${installation} -y $APP_ID
+        if ${pkgs.flatpak}/bin/flatpak info --${installation} -- "$APP_ID" >/dev/null 2>&1; then
+          ${pkgs.flatpak}/bin/flatpak uninstall --${installation} -y "$APP_ID"
+        else
+          echo "$APP_ID has already been uninstalled."
+        fi
     done
   '';
 
@@ -81,7 +87,7 @@ let
       '$new.overrides + $old.overrides | keys[]' \
       | while read -r APP_ID; do
           OVERRIDES_PATH=${overridesDir}/$APP_ID
-          
+
           # Transform the INI-like Flatpak overrides file into a workable JSON
           if [[ -f $OVERRIDES_PATH ]]; then
             ACTIVE=$(${pkgs.coreutils}/bin/cat $OVERRIDES_PATH \
@@ -138,6 +144,24 @@ in
 pkgs.writeShellScript "flatpak-managed-install" ''
   # This script is triggered at build time by a transient systemd unit.
   set -eu
+
+  # my-edit: wait for internet connection before proceeding
+  # bashism
+  MAX_RETRY=5
+  PAUSE_SEC=180
+  for ((i = 0; i <= MAX_RETRY; i++)); do # [SC2051](https://www.shellcheck.net/wiki/SC2051)
+    if ${pkgs.inetutils}/bin/ping -c 1 1.1.1.1 >/dev/null 2>&1; then
+      break
+    fi
+
+    if [ "$i" -ge "$MAX_RETRY" ]; then
+      echo "ERROR: Internet is not connected. Aborting execution."
+      exit 1
+    fi
+
+    echo "INFO: Waiting Internet connection. Will retry after ''${PAUSE_SEC}s."
+    ${pkgs.coreutils}/bin/sleep "$PAUSE_SEC"
+  done
 
   # Setup state variables for packages and remotes
   NEW_STATE=$(${pkgs.coreutils}/bin/cat ${stateFile})

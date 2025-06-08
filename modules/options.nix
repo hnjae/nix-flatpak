@@ -25,7 +25,9 @@ let
   packageOptions = _: {
     options = {
       appId = mkOption {
-        type = types.str;
+        # type = types.str;
+        # my-edit:
+        type = types.nonEmptyStr;
         description = lib.mdDoc "The fully qualified id of the app to install.";
       };
 
