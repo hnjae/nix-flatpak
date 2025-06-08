@@ -17,7 +17,8 @@ in
   config = lib.mkIf config.services.flatpak.enable {
     systemd.user.services."flatpak-managed-install" = {
       Unit.After = [ "multi-user.target" ];
-      Install.WantedBy = [ "default.target" ];
+      # my-edit: no automatic updates at every boot/login
+      # Install.WantedBy = [ "default.target" ];
       Service = helpers.mkCommonServiceConfig
         {
           inherit cfg pkgs lib installation;
@@ -43,14 +44,15 @@ in
       Unit.Description = "flatpak update schedule";
     };
 
-    home.activation = {
-      flatpak-managed-install = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
-        export PATH=${lib.makeBinPath (with pkgs; [ systemd ])}:$PATH
-
-        $DRY_RUN_CMD systemctl is-system-running -q && \
-          systemctl --user start flatpak-managed-install.service || true
-      '';
-    };
+    # my-edit: disable home.activation (it takes so long)
+    # home.activation = {
+    #   flatpak-managed-install = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
+    #     export PATH=${lib.makeBinPath (with pkgs; [ systemd ])}:$PATH
+    #
+    #     $DRY_RUN_CMD systemctl is-system-running -q && \
+    #       systemctl --user start flatpak-managed-install.service || true
+    #   '';
+    # };
 
     xdg.enable = true;
   };
